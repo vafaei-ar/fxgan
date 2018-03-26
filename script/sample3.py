@@ -79,7 +79,7 @@ def dpp(n):
 # run_config.gpu_options.allow_growth = True
 dcgan = cs.DCGAN(
     data_provider = dpp,
-    data_denormalizer = dp.denormalize,
+    data_postprocess=dp.postprocess,
     batch_size=batch_size,
     gf_dim=gf_dim, df_dim=64,
     z_dim=z_dim,

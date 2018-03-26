@@ -36,13 +36,19 @@ class Data_Provider(object):
 	def __init__(self,files_list,
 				 dtype = np.float16,
 				 nest = 1,
-				 lp = None):
+				 lp = None,
+				 preprocess_mode=1,
+				 preprocess_parameter_k=1.):
+
+		self.preprocess_mode = preprocess_mode
+		self.preprocess_parameter_k = preprocess_parameter_k
+
 		npatch = 1
 		numpa = 12
-		
+
 		if type(files_list) is not list:
 			files_list = [files_list]
-		
+
 		if lp is None:
 			fits_hdu = hp.fitsfunc._get_hdu(files_list[0], hdu=1, memmap=False)
 			lp = fits_hdu.header.get('NSIDE')
@@ -52,22 +58,36 @@ class Data_Provider(object):
 		self.patchs = np.zeros((12*n_files,lp,lp))
 		for i in range(n_files):
 			file_ = files_list[i]
-			m = hp.read_map(file_,dtype=dtype,verbose=0,nest=nest)	   
+			m = hp.read_map(file_,dtype=dtype,verbose=0,nest=nest)
 			self.patchs[i*12:(i+1)*12,:,:] = sky_to_patch(m,npatch,numpa,lp)
-			
+
 		self.n_patch = self.patchs.shape[0]
 
 		self.mean = self.patchs.mean()
 		self.std = self.patchs.std()
+		self.min = self.patchs.min()
+		self.max = self.patchs.max()
 
 		print("Data Loaded:\n\tpatch number=%d\n\tsize in byte=%d" % (self.n_patch, self.patchs.nbytes))
-		print("\tmin value=%f\n\tmax value=%f\n\tmean value=%f\n\tSTD value=%f" % (self.patchs.min(), self.patchs.max(), self.mean, self.std))
+		print("\tmin value=%f\n\tmax value=%f\n\tmean value=%f\n\tSTD value=%f" % (self.min, self.max, self.mean, self.std))
 
-		#Normalize data
-		self.patchs = (self.patchs - self.mean) / self.std
+		if self.preprocess_mode == 0:
+			pass
+		elif self.preprocess_mode == 1:
+			# Normalize data
+			self.patchs = (self.patchs - self.mean) / self.std
+		else:
+			raise Exception("invalid normalization mode")
 
-	def denormalize(self, inp):
-		return inp*self.std + self.mean
+
+	def postprocess(self, inp):
+		if self.preprocess_mode == 0:
+			return inp
+		elif self.preprocess_mode == 1:
+			return inp * self.std + self.mean
+		else:
+			raise Exception("invalid normalization mode")
+
 		 
 	def __call__(self,num,l):
 					 

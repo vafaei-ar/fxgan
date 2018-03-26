@@ -11,14 +11,14 @@ from ops import *
 from utils import *
 
 class DCGAN(object):
-    def __init__(self, data_provider, data_denormalizer , batch_size=64, n_side=4,
+    def __init__(self, data_provider, data_postprocess , batch_size=64, n_side=4,
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
                  checkpoint_dir=None,save_per = 500):
 
         self.dp = data_provider
-        self.denormalize = data_denormalizer
+        self.postprocess = data_postprocess
 
         """
         Args:
@@ -86,8 +86,8 @@ class DCGAN(object):
 
         self.d_sum = histogram_summary("d", self.D)
         self.d__sum = histogram_summary("d_", self.D_)
-        self.REAL_sum = image_summary("Real", self.denormalize(inputs[:3, :, :, :1]))
-        self.G_sum = image_summary("G", self.denormalize(self.G[:,:,:,:1]))
+        self.REAL_sum = image_summary("Real", self.postprocess(inputs[:3, :, :, :1]))
+        self.G_sum = image_summary("G", self.postprocess(self.G[:,:,:,:1]))
 
         def sigmoid_cross_entropy_with_logits(x, y):
             try:
@@ -260,7 +260,7 @@ class DCGAN(object):
         output = self.generator(self.z, n_sample, mode='sampler')
         samples = self.sess.run(output,feed_dict={self.z: z})
         
-        return self.denormalize(samples)
+        return self.postprocess(samples)
     
     def sampler(self, z, n_sample):
         
