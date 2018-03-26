@@ -21,17 +21,12 @@ class DCGAN(object):
         self.denormalize = data_denormalizer
 
         """
-
         Args:
-          sess: TensorFlow session
           batch_size: The size of batch. Should be specified before training.
           y_dim:(optional) Dimension of dim for y. [None]
           z_dim:(optional) Dimension of dim for Z. [100]
           gf_dim:(optional) Dimension of gen filters in first conv layer. [64]
           df_dim:(optional) Dimension of discrim filters in first conv layer. [64]
-          gfc_dim:(optional) Dimension of gen units for for fully connected layer. [1024]
-          dfc_dim:(optional) Dimension of discrim units for fully connected layer. [1024]
-          c_dim:(optional) Dimension of image color. For grayscale input, set to 1. [3]
         """
         tf.reset_default_graph()
 #        run_config = tf.ConfigProto ()
@@ -104,7 +99,7 @@ class DCGAN(object):
         # self.d_loss_fake = tf.reduce_mean(sigmoid_cross_entropy_with_logits(self.D_logits_, tf.zeros_like(self.D_)))
         # self.g_loss = tf.reduce_mean(sigmoid_cross_entropy_with_logits(self.D_logits_, tf.ones_like(self.D_)))
 
-        rv_shape = self.D.shape
+        rv_shape = tf.shape(self.D)
         self.d_loss_real = tf.reduce_mean(sigmoid_cross_entropy_with_logits(self.D_logits, tf.ones_like(self.D) *
                                                             tf.random_uniform(rv_shape,self.label_real_lower,1.0)))
         self.d_loss_fake = tf.reduce_mean(sigmoid_cross_entropy_with_logits(self.D_logits_, tf.ones_like(self.D_) *
@@ -152,7 +147,7 @@ class DCGAN(object):
         # sample_z = np.random.uniform(-1, 1, size=(self.sample_num, self.z_dim))
         sample_z = np.random.normal(size=(self.n_sample, self.z_dim))
         
-        sample = self.dp(self.n_sample)
+        # sample = self.dp(self.n_sample)
 
         counter = 1
         start_time = time.time()

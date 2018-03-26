@@ -2,6 +2,9 @@ import os
 import numpy as np
 import pylab as plt
 
+import sys
+sys.path.insert(0, "./")
+
 import csgan as cs
 
 if os.path.exists('../dataset/'):
@@ -39,6 +42,7 @@ dcgan = cs.DCGAN (
 	data_denormalizer = dp.denormalize,
 	batch_size=batch_size,
 	gf_dim=gf_dim, df_dim=64,
+	label_real_lower=0.8,label_fake_upper=0.2,
 	z_dim=z_dim,
 	checkpoint_dir='checkpoint')
 
