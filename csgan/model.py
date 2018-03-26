@@ -60,9 +60,6 @@ class DCGAN(object):
         self.gf_dim = gf_dim
         self.df_dim = df_dim
 
-        self.gfc_dim = gfc_dim
-        self.dfc_dim = dfc_dim
-
         # batch normalization : deals with poor initialization helps gradient flow
         self.d_bn1 = batch_norm(name='d_bn1')
         self.d_bn2 = batch_norm(name='d_bn2')
