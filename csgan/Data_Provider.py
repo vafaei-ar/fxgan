@@ -37,11 +37,9 @@ class Data_Provider(object):
 				 dtype = np.float16,
 				 nest = 1,
 				 lp = None,
-				 preprocess_mode=1,
-				 preprocess_parameter_k=1.):
+				 preprocess_mode=1):
 
 		self.preprocess_mode = preprocess_mode
-		self.preprocess_parameter_k = preprocess_parameter_k
 
 		npatch = 1
 		numpa = 12
