@@ -15,7 +15,7 @@ else:
 	raise Exception ('Dataset not found!')
 
 dataset_files = ['map1n_allz_rtaapixlw_2048_1.fits', 'map1n_allz_rtaapixlw_2048_2.fits', 'map1n_allz_rtaapixlw_2048_3.fits']
-dp = cs.Data_Provider ([prefix + file_name for file_name in dataset_files], preprocess_mode=2)
+dp = cs.Data_Provider ([prefix + file_name for file_name in dataset_files], preprocess_mode=1)
 
 # dt = filt_all(dp(10,128),func)
 # dt.shape
