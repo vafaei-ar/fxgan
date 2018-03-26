@@ -82,7 +82,6 @@ dcgan = cs.DCGAN(
     data_denormalizer = dp.denormalize,
     batch_size=batch_size,
     gf_dim=gf_dim, df_dim=64,
-    gfc_dim=1024, dfc_dim=1024,
     z_dim=z_dim,
     checkpoint_dir='checkpoint')
 

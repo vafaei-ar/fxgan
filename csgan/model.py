@@ -14,7 +14,6 @@ class DCGAN(object):
     def __init__(self, data_provider, data_denormalizer , batch_size=64, n_side=4,
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
-                 gfc_dim=1024, dfc_dim=1024,
                  label_real_lower=0.99,label_fake_upper=0.01,
                  checkpoint_dir=None,save_per = 500):
 
