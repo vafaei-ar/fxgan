@@ -87,12 +87,12 @@ class DCGAN(object):
         self.d__sum = histogram_summary("d_", self.D_)
         
         if self.postprocess is not None:
-        	self.REAL_sum = image_summary("Real", self.postprocess(inputs[:3, :, :, :1]))
-        	self.G_sum = image_summary("G", self.postprocess(self.G[:,:,:,:1]))
+            self.REAL_sum = image_summary("Real", self.postprocess(inputs[:3, :, :, :1]))
+            self.G_sum = image_summary("G", self.postprocess(self.G[:,:,:,:1]))
         else:
-        	self.REAL_sum = image_summary("Real", inputs[:3, :, :, :1])
-        	self.G_sum = image_summary("G", self.G[:,:,:,:1])
-        	
+            self.REAL_sum = image_summary("Real", inputs[:3, :, :, :1])
+            self.G_sum = image_summary("G", self.G[:,:,:,:1])
+            
         def sigmoid_cross_entropy_with_logits(x, y):
             try:
                 return tf.nn.sigmoid_cross_entropy_with_logits(logits=x, labels=y)
@@ -190,7 +190,7 @@ class DCGAN(object):
 
                 counter += 1
                 if np.mod(counter, verbose) == 1 and verbose:
-                	print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
+                    print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
                       %(epoch, idx, batch_per_epoch, time.time() - start_time, errD_fake + errD_real, errG))
 
                 if np.mod(counter, sample_per) == 1:
@@ -266,9 +266,9 @@ class DCGAN(object):
         samples = self.sess.run(output,feed_dict={self.z: z})
         
         if self.postprocess is not None:
-        	return self.postprocess(samples)
+            return self.postprocess(samples)
         else:
-        	return samples
+            return samples
     
     def sampler(self, z, n_sample):
         

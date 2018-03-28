@@ -37,7 +37,7 @@ class Data_Provider(object):
 				 dtype = np.float16,
 				 nest = 1,
 				 lp = None,
-				 preprocess_mode=1):
+				 preprocess_mode=2):
 
 		self.preprocess_mode = preprocess_mode
 
@@ -74,6 +74,9 @@ class Data_Provider(object):
 		elif self.preprocess_mode == 1:
 			# Normalize data
 			self.patchs = (self.patchs - self.mean) / self.std
+		elif self.preprocess_mode == 2:
+			scl = float(self.max - self.min)
+			self.patchs = (self.patchs - self.min) / scl
 		else:
 			raise Exception("invalid normalization mode")
 
@@ -83,6 +86,9 @@ class Data_Provider(object):
 			return inp
 		elif self.preprocess_mode == 1:
 			return inp * self.std + self.mean
+		elif self.preprocess_mode == 2:
+			scl = float (self.max - self.min)
+			return inp * scl + self.min
 		else:
 			raise Exception("invalid normalization mode")
 
