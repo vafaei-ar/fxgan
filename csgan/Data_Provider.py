@@ -76,7 +76,7 @@ class Data_Provider(object):
 			self.patchs = (self.patchs - self.mean) / self.std
 		elif self.preprocess_mode == 2:
 			scl = float(self.max - self.min)
-			self.patchs = (self.patchs - self.min) / scl
+			self.patchs = 2. * ((self.patchs - self.min) / scl) - 1.
 		else:
 			raise Exception("invalid normalization mode")
 
@@ -88,7 +88,7 @@ class Data_Provider(object):
 			return inp * self.std + self.mean
 		elif self.preprocess_mode == 2:
 			scl = float (self.max - self.min)
-			return inp * scl + self.min
+			return (inp + 1.) * .5 * scl + self.min
 		else:
 			raise Exception("invalid normalization mode")
 
