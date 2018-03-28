@@ -11,7 +11,7 @@ from ops import *
 from utils import *
 
 class DCGAN(object):
-    def __init__(self, data_provider, data_postprocess , batch_size=64, n_side=4,
+    def __init__(self, data_provider, data_postprocess=None , batch_size=64, n_side=4,
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
@@ -73,7 +73,6 @@ class DCGAN(object):
         image_dims = [self.input_height, self.input_width, self.c_dim]
 
         self.inputs = tf.placeholder(tf.float32, [self.batch_size] + image_dims, name='real_images')
-
         inputs = self.inputs
 
         self.z = tf.placeholder(tf.float32, [None, self.z_dim], name='z')
@@ -86,9 +85,14 @@ class DCGAN(object):
 
         self.d_sum = histogram_summary("d", self.D)
         self.d__sum = histogram_summary("d_", self.D_)
-        self.REAL_sum = image_summary("Real", self.postprocess(inputs[:3, :, :, :1]))
-        self.G_sum = image_summary("G", self.postprocess(self.G[:,:,:,:1]))
-
+        
+        if self.postprocess is not None:
+        	self.REAL_sum = image_summary("Real", self.postprocess(inputs[:3, :, :, :1]))
+        	self.G_sum = image_summary("G", self.postprocess(self.G[:,:,:,:1]))
+        else:
+        	self.REAL_sum = image_summary("Real", inputs[:3, :, :, :1])
+        	self.G_sum = image_summary("G", self.G[:,:,:,:1])
+        	
         def sigmoid_cross_entropy_with_logits(x, y):
             try:
                 return tf.nn.sigmoid_cross_entropy_with_logits(logits=x, labels=y)
@@ -124,7 +128,7 @@ class DCGAN(object):
 
     def train(self,learning_rate=0.0002,beta1=0.5,num_epoch=25,
               batch_per_epoch = 1000,sample_per=None,
-              sample_dir='samples',checkpoint_dir='checkpoint'):
+              sample_dir='samples',checkpoint_dir='checkpoint',verbose=10):
         
         if sample_per is None:
             sample_per = batch_per_epoch
@@ -185,7 +189,8 @@ class DCGAN(object):
                 errG = self.sess.run(self.g_loss,{self.z: batch_z})
 
                 counter += 1
-                print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
+                if np.mod(counter, verbose) == 1 and verbose:
+                	print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
                       %(epoch, idx, batch_per_epoch, time.time() - start_time, errD_fake + errD_real, errG))
 
                 if np.mod(counter, sample_per) == 1:
@@ -260,7 +265,10 @@ class DCGAN(object):
         output = self.generator(self.z, n_sample, mode='sampler')
         samples = self.sess.run(output,feed_dict={self.z: z})
         
-        return self.postprocess(samples)
+        if self.postprocess is not None:
+        	return self.postprocess(samples)
+        else:
+        	return samples
     
     def sampler(self, z, n_sample):
         

@@ -27,10 +27,9 @@ dp = cs.Data_Provider ([prefix + file_name for file_name in dataset_files], prep
 batch_size = 32
 image_size = 128
 gf_dim = 64
-z_dim = 100
+df_dim = 32
+z_dim = 128
 
-
-# (image_size/16)**2*gf_dim*8==z_dim
 
 def dpp(n):
 	return dp(n, image_size).reshape(n, image_size, image_size, 1)
@@ -41,7 +40,7 @@ dcgan = cs.DCGAN (
 	data_provider=dpp,
 	data_postprocess = dp.postprocess,
 	batch_size=batch_size,
-	gf_dim=gf_dim, df_dim=64,
+	gf_dim=gf_dim, df_dim=df_dim,
 	label_real_lower=0.8,label_fake_upper=0.2,
 	z_dim=z_dim,
 	checkpoint_dir='checkpoint')
