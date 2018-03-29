@@ -41,9 +41,9 @@ dcgan = cs.DCGAN (
 	data_postprocess=dp.postprocess,
 	batch_size=batch_size,
 	gf_dim=gf_dim, df_dim=df_dim,
-	label_real_lower=0.9, label_fake_upper=0.1,
+	label_real_lower=.9, label_fake_upper=.1,
 	z_dim=z_dim,
 	checkpoint_dir='checkpoint')
 
-dcgan.train (num_epoch=500, batch_per_epoch=50, learning_rate=1e-4)
+dcgan.train (num_epoch=500, batch_per_epoch=50, learning_rate=5e-5, D_update_per_batch=2, G_update_per_batch=1)
 
