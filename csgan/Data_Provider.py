@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import healpy as hp
+import tensorflow as tf
 import pylab as plt
 
 if not os.path.exists('./sky2face.so'):
@@ -84,6 +85,7 @@ class Data_Provider(object):
 
 
 	def postprocess(self, inp):
+		# must be in TF format
 		if self.preprocess_mode == 0:
 			return inp
 		elif self.preprocess_mode == 1:
@@ -92,11 +94,10 @@ class Data_Provider(object):
 			scl = float (self.max - self.min)
 			return (inp + 1.) * .5 * scl + self.min
 		elif self.preprocess_mode == 3:
-			return np.arctanh(self.patchs) + self.mean
+			return tf.atanh(inp) + self.mean
 		else:
 			raise Exception("invalid normalization mode")
 
-		 
 	def __call__(self,num,l):
 					 
 		l_max = self.patchs.shape[1]
