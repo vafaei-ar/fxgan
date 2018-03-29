@@ -87,11 +87,11 @@ class DCGAN(object):
         self.d__sum = histogram_summary("d_", self.D_)
         
         if self.postprocess is not None:
-            self.REAL_sum = image_summary("Real", self.postprocess(inputs[:3, :, :, :1]))
-            self.G_sum = image_summary("G", self.postprocess(self.G[:,:,:,:1]))
+            self.REAL_sum = image_summary("Real", self.postprocess(inputs[:3, :, :, 0]))
+            self.G_sum = image_summary("G", self.postprocess(self.G[:,:,:,0]))
         else:
-            self.REAL_sum = image_summary("Real", inputs[:3, :, :, :1])
-            self.G_sum = image_summary("G", self.G[:,:,:,:1])
+            self.REAL_sum = image_summary("Real", inputs[:3, :, :, 0])
+            self.G_sum = image_summary("G", self.G[:,:,:,0])
             
         def sigmoid_cross_entropy_with_logits(x, y):
             try:
