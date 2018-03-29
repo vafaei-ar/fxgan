@@ -128,7 +128,8 @@ class DCGAN(object):
 
     def train(self,learning_rate=0.0002,beta1=0.5,num_epoch=25,
               batch_per_epoch = 1000,sample_per=None,
-              sample_dir='samples',checkpoint_dir='checkpoint',verbose=10):
+              sample_dir='samples',checkpoint_dir='checkpoint',verbose=10,
+              D_update_per_batch=1, G_update_per_batch=2):
         
         if sample_per is None:
             sample_per = batch_per_epoch
@@ -180,6 +181,10 @@ class DCGAN(object):
                 # Run g_optim twice to make sure that d_loss does not go to zero(different from paper)
                 _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
                 self.writer.add_summary(summary_str, counter)
+
+                # # Run g_optim twice to make sure that d_loss does not go to zero(different from paper)
+                # _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
+                # self.writer.add_summary(summary_str, counter)
 
 #                 errD_fake = self.d_loss_fake.eval(session=self.sess,{self.z: batch_z})
 #                 errD_real = self.d_loss_real.eval(session=self.sess,{self.inputs: batch_images})
