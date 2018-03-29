@@ -15,7 +15,7 @@ else:
 	raise Exception ('Dataset not found!')
 
 dataset_files = ['map1n_allz_rtaapixlw_2048_1.fits', 'map1n_allz_rtaapixlw_2048_2.fits', 'map1n_allz_rtaapixlw_2048_3.fits']
-dp = cs.Data_Provider ([prefix + file_name for file_name in dataset_files])
+dp = cs.Data_Provider ([prefix + file_name for file_name in dataset_files], preprocess_mode=3)
 
 # dt = filt_all(dp(10,128),func)
 # dt.shape
@@ -24,11 +24,11 @@ dp = cs.Data_Provider ([prefix + file_name for file_name in dataset_files])
 # ax2.imshow(dt[0,:,:,1])
 
 
-batch_size = 16
+batch_size = 64
 image_size = 128
-gf_dim = 64
+gf_dim = 32
 df_dim = 32
-z_dim = 128
+z_dim = 200
 
 
 def dpp(n):
@@ -38,7 +38,7 @@ def dpp(n):
 
 dcgan = cs.DCGAN (
 	data_provider=dpp,
-	data_postprocess = dp.postprocess,
+	data_postprocess=dp.postprocess,
 	batch_size=batch_size,
 	gf_dim=gf_dim, df_dim=df_dim,
 	label_real_lower=0.8,label_fake_upper=0.2,

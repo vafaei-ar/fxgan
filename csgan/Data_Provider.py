@@ -77,6 +77,8 @@ class Data_Provider(object):
 		elif self.preprocess_mode == 2:
 			scl = float(self.max - self.min)
 			self.patchs = 2. * ((self.patchs - self.min) / scl) - 1.
+		elif self.preprocess_mode == 3:
+			self.patchs = np.tanh(self.patchs - self.mean)
 		else:
 			raise Exception("invalid normalization mode")
 
@@ -89,6 +91,8 @@ class Data_Provider(object):
 		elif self.preprocess_mode == 2:
 			scl = float (self.max - self.min)
 			return (inp + 1.) * .5 * scl + self.min
+		elif self.preprocess_mode == 3:
+			return np.arctanh(self.patchs) + self.mean
 		else:
 			raise Exception("invalid normalization mode")
 
