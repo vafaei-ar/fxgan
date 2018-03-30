@@ -130,8 +130,12 @@ class DCGAN(object):
     def train(self,learning_rate=0.0002,beta1=0.5,num_epoch=25,
               batch_per_epoch = 1000,sample_per=None,
               sample_dir='samples',checkpoint_dir='checkpoint',verbose=10,
-              D_update_per_batch=1, G_update_per_batch=2):
+              D_update_per_batch=1, G_update_per_batch=2, time_limit=None):
         
+        if time_limit is not None:
+            import time
+            t0 = time.time()
+			
         if sample_per is None:
             sample_per = batch_per_epoch
             
@@ -210,6 +214,13 @@ class DCGAN(object):
 
                 if np.mod(counter, self.save_per) == 2:
                     self.save(checkpoint_dir, counter)
+                    
+                if time_limit is not None:
+                    t1 = time.time()
+                    if (t1-t0)/60>time_limit:
+                        print "Time's up, goodbye!"
+                        self.save(checkpoint_dir, counter)
+                        return 0
 
     def discriminator(self, image, reuse=False):
         with tf.variable_scope("discriminator") as scope:
