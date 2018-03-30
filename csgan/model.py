@@ -11,28 +11,22 @@ from ops import *
 from utils import *
 
 class DCGAN(object):
-    def __init__(self, data_provider, data_denormalizer , batch_size=64, n_side=4,
+    def __init__(self, data_provider, data_postprocess=None , batch_size=64, n_side=4,
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
-                 gfc_dim=1024, dfc_dim=1024,
                  label_real_lower=0.99,label_fake_upper=0.01,
-                 checkpoint_dir=None,save_per = 500):
+                 checkpoint_dir=None,save_per = 500, defult_model_build=1):
 
         self.dp = data_provider
-        self.denormalize = data_denormalizer
+        self.postprocess = data_postprocess
 
         """
-
         Args:
-          sess: TensorFlow session
           batch_size: The size of batch. Should be specified before training.
           y_dim:(optional) Dimension of dim for y. [None]
           z_dim:(optional) Dimension of dim for Z. [100]
           gf_dim:(optional) Dimension of gen filters in first conv layer. [64]
           df_dim:(optional) Dimension of discrim filters in first conv layer. [64]
-          gfc_dim:(optional) Dimension of gen units for for fully connected layer. [1024]
-          dfc_dim:(optional) Dimension of discrim units for fully connected layer. [1024]
-          c_dim:(optional) Dimension of image color. For grayscale input, set to 1. [3]
         """
         tf.reset_default_graph()
 #        run_config = tf.ConfigProto ()
@@ -61,28 +55,25 @@ class DCGAN(object):
         self.gf_dim = gf_dim
         self.df_dim = df_dim
 
-        self.gfc_dim = gfc_dim
-        self.dfc_dim = dfc_dim
-
-        # batch normalization : deals with poor initialization helps gradient flow
-        self.d_bn1 = batch_norm(name='d_bn1')
-        self.d_bn2 = batch_norm(name='d_bn2')
-        self.d_bn3 = batch_norm(name='d_bn3')
-
-        self.g_bn0 = batch_norm(name='g_bn0')
-        self.g_bn1 = batch_norm(name='g_bn1')
-        self.g_bn2 = batch_norm(name='g_bn2')
-        self.g_bn3 = batch_norm(name='g_bn3')
-
         self.checkpoint_dir = checkpoint_dir
 
-        self.build_model()
+        if defult_model_build:
+       
+        # batch normalization : deals with poor initialization helps gradient flow
+            self.d_bn1 = batch_norm(name='d_bn1')
+            self.d_bn2 = batch_norm(name='d_bn2')
+            self.d_bn3 = batch_norm(name='d_bn3')
+
+            self.g_bn0 = batch_norm(name='g_bn0')
+            self.g_bn1 = batch_norm(name='g_bn1')
+            self.g_bn2 = batch_norm(name='g_bn2')
+            self.g_bn3 = batch_norm(name='g_bn3')
+            self.build_model()
 
     def build_model(self):
         image_dims = [self.input_height, self.input_width, self.c_dim]
 
         self.inputs = tf.placeholder(tf.float32, [self.batch_size] + image_dims, name='real_images')
-
         inputs = self.inputs
 
         self.z = tf.placeholder(tf.float32, [None, self.z_dim], name='z')
@@ -95,9 +86,14 @@ class DCGAN(object):
 
         self.d_sum = histogram_summary("d", self.D)
         self.d__sum = histogram_summary("d_", self.D_)
-        self.REAL_sum = image_summary("Real", self.denormalize(inputs[:3, :, :, :1]))
-        self.G_sum = image_summary("G", self.denormalize(self.G[:,:,:,:1]))
-
+        
+        if self.postprocess is not None:
+            self.REAL_sum = image_summary("Real", self.postprocess(inputs[:3, :, :, :1]))
+            self.G_sum = image_summary("G", self.postprocess(self.G[:,:,:,:1]))
+        else:
+            self.REAL_sum = image_summary("Real", inputs[:3, :, :, :1])
+            self.G_sum = image_summary("G", self.G[:,:,:,:1])
+            
         def sigmoid_cross_entropy_with_logits(x, y):
             try:
                 return tf.nn.sigmoid_cross_entropy_with_logits(logits=x, labels=y)
@@ -108,7 +104,7 @@ class DCGAN(object):
         # self.d_loss_fake = tf.reduce_mean(sigmoid_cross_entropy_with_logits(self.D_logits_, tf.zeros_like(self.D_)))
         # self.g_loss = tf.reduce_mean(sigmoid_cross_entropy_with_logits(self.D_logits_, tf.ones_like(self.D_)))
 
-        rv_shape = self.D.shape
+        rv_shape = tf.shape(self.D)
         self.d_loss_real = tf.reduce_mean(sigmoid_cross_entropy_with_logits(self.D_logits, tf.ones_like(self.D) *
                                                             tf.random_uniform(rv_shape,self.label_real_lower,1.0)))
         self.d_loss_fake = tf.reduce_mean(sigmoid_cross_entropy_with_logits(self.D_logits_, tf.ones_like(self.D_) *
@@ -133,15 +129,14 @@ class DCGAN(object):
 
     def train(self,learning_rate=0.0002,beta1=0.5,num_epoch=25,
               batch_per_epoch = 1000,sample_per=None,
-              sample_dir='samples',checkpoint_dir='checkpoint'):
+              sample_dir='samples',checkpoint_dir='checkpoint',verbose=10,
+              D_update_per_batch=1, G_update_per_batch=2):
         
         if sample_per is None:
             sample_per = batch_per_epoch
             
-        d_optim = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(self.d_loss,
-                                                                                              var_list=self.d_vars)
-        g_optim = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(self.g_loss,
-                                                                                              var_list=self.g_vars)
+        d_optim = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(self.d_loss,var_list=self.d_vars)
+        g_optim = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(self.g_loss,var_list=self.g_vars)
         try:
 #             self.sess.run(tf.global_variables_initializer())
             tf.global_variables_initializer().run(session=self.sess)
@@ -156,7 +151,7 @@ class DCGAN(object):
         # sample_z = np.random.uniform(-1, 1, size=(self.sample_num, self.z_dim))
         sample_z = np.random.normal(size=(self.n_sample, self.z_dim))
         
-        sample = self.dp(self.n_sample)
+        # sample = self.dp(self.n_sample)
 
         counter = 1
         start_time = time.time()
@@ -175,12 +170,14 @@ class DCGAN(object):
 
                 batch_z = np.random.normal(size=(self.batch_size, self.z_dim)).astype(np.float32)
                 # Update D network
-                _, summary_str = self.sess.run([d_optim, self.d_sum],feed_dict={self.inputs: batch_images, self.z: batch_z})
-                self.writer.add_summary(summary_str, counter)
+                for __ in range (D_update_per_batch):
+                    _, summary_str = self.sess.run([d_optim, self.d_sum],feed_dict={self.inputs: batch_images, self.z: batch_z})
+                    self.writer.add_summary(summary_str, counter)
 
                 # Update G network
-                _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
-                self.writer.add_summary(summary_str, counter)
+                for __ in range(G_update_per_batch):
+                    _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
+                    self.writer.add_summary(summary_str, counter)
 
                 # Run g_optim twice to make sure that d_loss does not go to zero(different from paper)
                 _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
@@ -194,10 +191,11 @@ class DCGAN(object):
                 errG = self.sess.run(self.g_loss,{self.z: batch_z})
 
                 counter += 1
-                print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
-                      %(epoch, idx, batch_per_epoch, time.time() - start_time, errD_fake + errD_real, errG))
+                if np.mod(counter, verbose) == 1 and verbose:
+                    print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f, counter: %4d" \
+                      %(epoch, idx, batch_per_epoch, time.time() - start_time, errD_fake + errD_real, errG, counter))
 
-                if np.mod(counter, sample_per) == 1:
+                if np.mod(counter, sample_per) == 1 or sample_per==1:
                     try:
                         samples = self.sess.run(self.sampler_out,
                             feed_dict={self.z: sample_z})
@@ -269,7 +267,10 @@ class DCGAN(object):
         output = self.generator(self.z, n_sample, mode='sampler')
         samples = self.sess.run(output,feed_dict={self.z: z})
         
-        return self.denormalize(samples)
+        if self.postprocess is not None:
+            return self.postprocess(samples)
+        else:
+            return samples
     
     def sampler(self, z, n_sample):
         

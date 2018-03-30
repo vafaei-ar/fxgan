@@ -2,6 +2,9 @@ import os
 import numpy as np
 import pylab as plt
 
+import sys
+sys.path.insert(0, "./")
+
 import csgan as cs
 
 if os.path.exists('../dataset/'):
@@ -12,7 +15,7 @@ else:
 	raise Exception ('Dataset not found!')
 
 dataset_files = ['map1n_allz_rtaapixlw_2048_1.fits', 'map1n_allz_rtaapixlw_2048_2.fits', 'map1n_allz_rtaapixlw_2048_3.fits']
-dp = cs.Data_Provider ([prefix + file_name for file_name in dataset_files])
+dp = cs.Data_Provider ([prefix + file_name for file_name in dataset_files], preprocess_mode=1)
 
 # dt = filt_all(dp(10,128),func)
 # dt.shape
@@ -36,12 +39,12 @@ def dpp(n):
 
 dcgan = cs.DCGAN (
 	data_provider=dpp,
-	data_denormalizer = dp.denormalize,
+	data_postprocess = dp.postprocess,
 	batch_size=batch_size,
 	gf_dim=gf_dim, df_dim=64,
-	gfc_dim=1024, dfc_dim=1024,
+	label_real_lower=0.8,label_fake_upper=0.2,
 	z_dim=z_dim,
 	checkpoint_dir='checkpoint')
 
-dcgan.train (num_epoch=500, batch_per_epoch=50)
+dcgan.train (num_epoch=500, batch_per_epoch=50, learning_rate=5e-5)
 
