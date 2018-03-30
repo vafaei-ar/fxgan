@@ -133,7 +133,7 @@ class DCGAN(object):
               D_update_per_batch=1, G_update_per_batch=2, time_limit=None):
         
         if time_limit is not None:
-            import time
+            # import time
             t0 = time.time()
 			
         if sample_per is None:
@@ -175,27 +175,22 @@ class DCGAN(object):
                 batch_z = np.random.normal(size=(self.batch_size, self.z_dim)).astype(np.float32)
                 # Update D network
                 for __ in range (D_update_per_batch):
-                    _, summary_str = self.sess.run([d_optim, self.d_sum],feed_dict={self.inputs: batch_images, self.z: batch_z})
-                    self.writer.add_summary(summary_str, counter)
+                    self.sess.run(d_optim, feed_dict={self.inputs: batch_images, self.z: batch_z})
 
                 # Update G network
                 for __ in range(G_update_per_batch):
-                    _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
-                    self.writer.add_summary(summary_str, counter)
-
-                # Run g_optim twice to make sure that d_loss does not go to zero(different from paper)
-                _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
-                self.writer.add_summary(summary_str, counter)
-
-#                 errD_fake = self.d_loss_fake.eval(session=self.sess,{self.z: batch_z})
-#                 errD_real = self.d_loss_real.eval(session=self.sess,{self.inputs: batch_images})
-#                 errG = self.g_loss.eval(session=self.sess,{self.z: batch_z})
-                errD_fake = self.sess.run(self.d_loss_fake,{self.z: batch_z})
-                errD_real = self.sess.run(self.d_loss_real,{self.inputs: batch_images})
-                errG = self.sess.run(self.g_loss,{self.z: batch_z})
+                    self.sess.run(g_optim, feed_dict={self.z: batch_z})
 
                 counter += 1
-                if np.mod(counter, verbose) == 1 and verbose:
+                if np.mod (counter, verbose) == 1 and verbose:
+                    summary_str = self.sess.run (self.d_sum, feed_dict={self.inputs: batch_images, self.z: batch_z})
+                    self.writer.add_summary(summary_str, counter)
+                    summary_str = self.sess.run (self.g_sum, feed_dict={self.z: batch_z})
+                    self.writer.add_summary(summary_str, counter)
+
+                    errD_fake = self.sess.run (self.d_loss_fake, {self.z: batch_z})
+                    errD_real = self.sess.run (self.d_loss_real, {self.inputs: batch_images})
+                    errG = self.sess.run (self.g_loss, {self.z: batch_z})
                     print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f, counter: %4d" \
                       %(epoch, idx, batch_per_epoch, time.time() - start_time, errD_fake + errD_real, errG, counter))
 

@@ -45,5 +45,5 @@ dcgan = cs.DCGAN (
 	z_dim=z_dim,
 	checkpoint_dir='checkpoint')
 
-dcgan.train (num_epoch=500, batch_per_epoch=50, learning_rate=1e-4, D_update_per_batch=1, G_update_per_batch=1)
+dcgan.train (num_epoch=500, batch_per_epoch=50, learning_rate=1e-4, D_update_per_batch=1, G_update_per_batch=1, verbose=100)
 
