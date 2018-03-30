@@ -13,10 +13,8 @@ class Data_Provider(object):
 	
 	"""
 	CLASS GeneralDataProvider: This class will provide data to feed network.
-
 	--------
 	METHODS:
-
 	__init__:
 	| arguments:
 	|		files_list: list of paths to the maps. 
@@ -29,7 +27,6 @@ class Data_Provider(object):
 	| Arguments:
 	|		num: number of returned patches.
 	|		l: number of returned patches.
-
 	| Returns:
 	|		Image, Demand map, coordinates (if coord is true)
 	"""

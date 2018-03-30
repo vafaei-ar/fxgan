@@ -15,7 +15,7 @@ class DCGAN(object):
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
-                 checkpoint_dir=None,save_per = 500):
+                 checkpoint_dir=None,save_per = 500, defult_model_build=1):
 
         self.dp = data_provider
         self.postprocess = data_postprocess
@@ -55,19 +55,20 @@ class DCGAN(object):
         self.gf_dim = gf_dim
         self.df_dim = df_dim
 
-        # batch normalization : deals with poor initialization helps gradient flow
-        self.d_bn1 = batch_norm(name='d_bn1')
-        self.d_bn2 = batch_norm(name='d_bn2')
-        self.d_bn3 = batch_norm(name='d_bn3')
-
-        self.g_bn0 = batch_norm(name='g_bn0')
-        self.g_bn1 = batch_norm(name='g_bn1')
-        self.g_bn2 = batch_norm(name='g_bn2')
-        self.g_bn3 = batch_norm(name='g_bn3')
-
         self.checkpoint_dir = checkpoint_dir
 
-        self.build_model()
+        if defult_model_build:
+       
+        # batch normalization : deals with poor initialization helps gradient flow
+            self.d_bn1 = batch_norm(name='d_bn1')
+            self.d_bn2 = batch_norm(name='d_bn2')
+            self.d_bn3 = batch_norm(name='d_bn3')
+
+            self.g_bn0 = batch_norm(name='g_bn0')
+            self.g_bn1 = batch_norm(name='g_bn1')
+            self.g_bn2 = batch_norm(name='g_bn2')
+            self.g_bn3 = batch_norm(name='g_bn3')
+            self.build_model()
 
     def build_model(self):
         image_dims = [self.input_height, self.input_width, self.c_dim]
@@ -129,15 +130,17 @@ class DCGAN(object):
     def train(self,learning_rate=0.0002,beta1=0.5,num_epoch=25,
               batch_per_epoch = 1000,sample_per=None,
               sample_dir='samples',checkpoint_dir='checkpoint',verbose=10,
-              D_update_per_batch=1, G_update_per_batch=2):
+              D_update_per_batch=1, G_update_per_batch=2, time_limit=None):
         
+        if time_limit is not None:
+            import time
+            t0 = time.time()
+			
         if sample_per is None:
             sample_per = batch_per_epoch
             
-        d_optim = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(self.d_loss,
-                                                                                              var_list=self.d_vars)
-        g_optim = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(self.g_loss,
-                                                                                              var_list=self.g_vars)
+        d_optim = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(self.d_loss,var_list=self.d_vars)
+        g_optim = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(self.g_loss,var_list=self.g_vars)
         try:
 #             self.sess.run(tf.global_variables_initializer())
             tf.global_variables_initializer().run(session=self.sess)
@@ -180,9 +183,9 @@ class DCGAN(object):
                     _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
                     self.writer.add_summary(summary_str, counter)
 
-                # # Run g_optim twice to make sure that d_loss does not go to zero(different from paper)
-                # _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
-                # self.writer.add_summary(summary_str, counter)
+                # Run g_optim twice to make sure that d_loss does not go to zero(different from paper)
+                _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={self.z: batch_z})
+                self.writer.add_summary(summary_str, counter)
 
 #                 errD_fake = self.d_loss_fake.eval(session=self.sess,{self.z: batch_z})
 #                 errD_real = self.d_loss_real.eval(session=self.sess,{self.inputs: batch_images})
@@ -193,10 +196,10 @@ class DCGAN(object):
 
                 counter += 1
                 if np.mod(counter, verbose) == 1 and verbose:
-                    print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
-                      %(epoch, idx, batch_per_epoch, time.time() - start_time, errD_fake + errD_real, errG))
+                    print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f, counter: %4d" \
+                      %(epoch, idx, batch_per_epoch, time.time() - start_time, errD_fake + errD_real, errG, counter))
 
-                if np.mod(counter, sample_per) == 1:
+                if np.mod(counter, sample_per) == 1 or sample_per==1:
                     try:
                         samples = self.sess.run(self.sampler_out,
                             feed_dict={self.z: sample_z})
@@ -211,6 +214,13 @@ class DCGAN(object):
 
                 if np.mod(counter, self.save_per) == 2:
                     self.save(checkpoint_dir, counter)
+                    
+                if time_limit is not None:
+                    t1 = time.time()
+                    if (t1-t0)/60>time_limit:
+                        print "Time's up, goodbye!"
+                        self.save(checkpoint_dir, counter)
+                        return 0
 
     def discriminator(self, image, reuse=False):
         with tf.variable_scope("discriminator") as scope:
