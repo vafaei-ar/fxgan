@@ -41,9 +41,9 @@ class NewDCGAN(cs.DCGAN):
 			h1 = lrelu (self.d_bn1 (conv2d (h0, self.df_dim * 2, name='d_h1_conv')))
 			h2 = lrelu (self.d_bn2 (conv2d (h1, self.df_dim * 4, name='d_h2_conv')))
 			h3 = lrelu (self.d_bn3 (conv2d (h2, self.df_dim * 8, name='d_h3_conv')))
-			h4 = linear (tf.reshape (h3, [-1]), self.batch_size * self.df_dim, 'd_h4_lin')
-			h5 = linear (h4, self.batch_size, 'd_h5_lin')
-			h6 = linear (h5, 1, 'd_h6_lin')
+			h4 = linear (tf.reshape (h3, [1, -1]), self.batch_size * self.df_dim, 'd_h4_lin')
+			h5 = linear (tf.reshape (h4, [1, -1]), self.batch_size, 'd_h5_lin')
+			h6 = linear (tf.reshape (h5, [1, -1]), 1, 'd_h6_lin')
 
 			return tf.nn.sigmoid (h6), h6
 
