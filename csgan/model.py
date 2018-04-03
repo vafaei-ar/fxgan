@@ -15,7 +15,7 @@ class DCGAN(object):
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
-                 checkpoint_dir=None,save_per = 500, defult_model_build=1):
+                 checkpoint_dir=None,save_per = 500):
 
         self.dp = data_provider
         self.postprocess = data_postprocess
@@ -57,18 +57,17 @@ class DCGAN(object):
 
         self.checkpoint_dir = checkpoint_dir
 
-        if defult_model_build:
-       
-        # batch normalization : deals with poor initialization helps gradient flow
-            self.d_bn1 = batch_norm(name='d_bn1')
-            self.d_bn2 = batch_norm(name='d_bn2')
-            self.d_bn3 = batch_norm(name='d_bn3')
 
-            self.g_bn0 = batch_norm(name='g_bn0')
-            self.g_bn1 = batch_norm(name='g_bn1')
-            self.g_bn2 = batch_norm(name='g_bn2')
-            self.g_bn3 = batch_norm(name='g_bn3')
-            self.build_model()
+        # batch normalization : deals with poor initialization helps gradient flow
+        self.d_bn1 = batch_norm(name='d_bn1')
+        self.d_bn2 = batch_norm(name='d_bn2')
+        self.d_bn3 = batch_norm(name='d_bn3')
+
+        self.g_bn0 = batch_norm(name='g_bn0')
+        self.g_bn1 = batch_norm(name='g_bn1')
+        self.g_bn2 = batch_norm(name='g_bn2')
+        self.g_bn3 = batch_norm(name='g_bn3')
+        self.build_model()
 
     def build_model(self):
         image_dims = [self.input_height, self.input_width, self.c_dim]
