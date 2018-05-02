@@ -69,7 +69,7 @@ class Data_Provider(object):
 		print("Data Loaded:\n\tpatch number=%d\n\tsize in byte=%d" % (self.n_patch, self.patchs.nbytes))
 		print("\tmin value=%f\n\tmax value=%f\n\tmean value=%f\n\tSTD value=%f" % (self.min, self.max, self.mean, self.std))
 
-		if self.preprocessor is None;
+		if self.preprocessor is None:
 			self.patchs = self.preprocessor(self.patchs)
 
 #		if self.preprocess_mode == 0:
