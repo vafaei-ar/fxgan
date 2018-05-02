@@ -14,11 +14,8 @@ image_size = 256
 checkpoint_dir = './checkpoint/'+sys.argv[0][:-3]
 sample_dir = './samples/'+sys.argv[0][:-3]
 
-defult_model_build=1
-
 dcgan = cs.DCGAN(
-    data_provider = dpp,
-    data_postprocess = dp.postprocess,
+    data_provider = dp,
     batch_size=64, gf_dim=64, df_dim=64,
     label_real_lower=.9, label_fake_upper=.1,
     z_dim=2048,checkpoint_dir=checkpoint_dir,
