@@ -31,11 +31,12 @@ class Data_Provider(object):
 	|		Image, Demand map, coordinates (if coord is true)
 	"""
 
-	def __init__(self,files_list,
+	def __init__(self,files_list,w_size,
 				 dtype = np.float16,
 				 nest = 1,
 				 lp = None):
-
+				 
+		self.w_size = w_size
 		self.preprocessor = None
 #		self.preprocessor = preprocessor
 #		self.postprocessor = postprocessor
@@ -59,6 +60,9 @@ class Data_Provider(object):
 			self.patchs[i*12:(i+1)*12,:,:] = sky_to_patch(m,npatch,numpa,lp)
 
 		self.n_patch = self.patchs.shape[0]
+
+		self.l_max = self.patchs.shape[1]
+		assert self.w_size<self.l_max,'ERROR!'
 
 		self.mean = self.patchs.mean()
 		self.std = self.patchs.std()
@@ -108,10 +112,11 @@ class Data_Provider(object):
 #		else:
 #			raise Exception("invalid normalization mode")
 
-	def __call__(self,num,l):
+	def __call__(self,num):
 					 
-		l_max = self.patchs.shape[1]
-		assert l<l_max,'ERROR!'
+		l = self.w_size
+		l_max = self.l_max
+		
 		x = np.zeros((num,l,l,1))
 
 		for i in range(num):

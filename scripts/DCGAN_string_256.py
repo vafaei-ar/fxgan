@@ -17,7 +17,8 @@ class Sample_Data_Provider(cs.Data_Provider):
 		scl = float (self.max - self.min)
 		return (inp + 1.) * .5 * scl + self.min
 
-dp = Sample_Data_Provider(file_list)
+image_size = 256
+dp = Sample_Data_Provider(file_list,image_size)
 
 batch_size = 64
 image_size = 256
