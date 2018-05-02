@@ -35,9 +35,11 @@ class Data_Provider(object):
 				 dtype = np.float16,
 				 nest = 1,
 				 lp = None,
-				 preprocess_mode=2):
+				 preprocessor = None,
+				 postprocessor = None):
 
-		self.preprocess_mode = preprocess_mode
+		self.preprocessor = preprocessor
+		self.postprocessor = postprocessor
 
 		npatch = 1
 		numpa = 12
@@ -67,39 +69,45 @@ class Data_Provider(object):
 		print("Data Loaded:\n\tpatch number=%d\n\tsize in byte=%d" % (self.n_patch, self.patchs.nbytes))
 		print("\tmin value=%f\n\tmax value=%f\n\tmean value=%f\n\tSTD value=%f" % (self.min, self.max, self.mean, self.std))
 
-		if self.preprocess_mode == 0:
-			pass
-		elif self.preprocess_mode == 1:
-			# Normalize data
-			self.patchs = (self.patchs - self.mean) / self.std
-		elif self.preprocess_mode == 2:
-			scl = float(self.max - self.min)
-			self.patchs = 2. * ((self.patchs - self.min) / scl) - 1.
-		elif self.preprocess_mode == 3:
-			self.patchs = np.tanh(self.patchs - self.mean)
-		else:
-			raise Exception("invalid normalization mode")
+		if self.preprocessor is None;
+			self.patchs = self.preprocessor(self.patchs)
 
-
+#		if self.preprocess_mode == 0:
+#			pass
+#		elif self.preprocess_mode == 1:
+#			# Normalize data
+#			self.patchs = (self.patchs - self.mean) / self.std
+#		elif self.preprocess_mode == 2:
+#			scl = float(self.max - self.min)
+#			self.patchs = 2. * ((self.patchs - self.min) / scl) - 1.
+#		elif self.preprocess_mode == 3:
+#			self.patchs = np.tanh(self.patchs - self.mean)
+#		else:
+#			raise Exception("invalid normalization mode")
+			
 	def postprocess(self, inp):
-		# must be in TF format
-		if self.preprocess_mode == 0:
-			return inp
-		elif self.preprocess_mode == 1:
-			return inp * self.std + self.mean
-		elif self.preprocess_mode == 2:
-			scl = float (self.max - self.min)
-			return (inp + 1.) * .5 * scl + self.min
-		elif self.preprocess_mode == 3:
-			return tf.atanh(inp) + self.mean
+		if self.postprocessor is not None:
+			return self.postprocessor(inp)
 		else:
-			raise Exception("invalid normalization mode")
+			return inp
+#		# must be in TF format
+#		if self.preprocess_mode == 0:
+#			return inp
+#		elif self.preprocess_mode == 1:
+#			return inp * self.std + self.mean
+#		elif self.preprocess_mode == 2:
+#			scl = float (self.max - self.min)
+#			return (inp + 1.) * .5 * scl + self.min
+#		elif self.preprocess_mode == 3:
+#			return tf.atanh(inp) + self.mean
+#		else:
+#			raise Exception("invalid normalization mode")
 
 	def __call__(self,num,l):
 					 
 		l_max = self.patchs.shape[1]
 		assert l<l_max,'ERROR!'
-		x = np.zeros((num,l,l))
+		x = np.zeros((num,l,l,1))
 
 		for i in range(num):
 			face = np.random.randint(self.n_patch)
@@ -111,6 +119,6 @@ class Data_Provider(object):
 			if 0 == np.random.randint(2):
 				xx = np.flip(xx,0)
 
-			x[i,:,:] = xx
+			x[i,:,:,0] = xx
 
 		return x

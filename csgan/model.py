@@ -11,14 +11,13 @@ from ops import *
 from utils import *
 
 class DCGAN(object):
-    def __init__(self, data_provider, data_postprocess=None , batch_size=64, n_side=4,
+    def __init__(self, data_provider, batch_size=64, n_side=4,
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
                  checkpoint_dir=None,save_per = 500):
 
-        self.dp = data_provider
-        self.postprocess = data_postprocess
+        self.dp = data_provider        
 
         """
         Args:
@@ -86,9 +85,9 @@ class DCGAN(object):
         self.d_sum = histogram_summary("d", self.D)
         self.d__sum = histogram_summary("d_", self.D_)
         
-        if self.postprocess is not None:
-            self.REAL_sum = image_summary("Real", self.postprocess(inputs[:3, :, :, :1]))
-            self.G_sum = image_summary("G", self.postprocess(self.G[:,:,:,:1]))
+        if self.dp.postprocessor is not None:
+            self.REAL_sum = image_summary("Real", self.dp.postprocess(inputs[:3, :, :, :1]))
+            self.G_sum = image_summary("G", self.dp.postprocess(self.G[:,:,:,:1]))
         else:
             self.REAL_sum = image_summary("Real", inputs[:3, :, :, :1])
             self.G_sum = image_summary("G", self.G[:,:,:,:1])
@@ -272,8 +271,8 @@ class DCGAN(object):
         output = self.generator(self.z, n_sample, mode='sampler')
         samples = self.sess.run(output,feed_dict={self.z: z})
         
-        if self.postprocess is not None:
-            return self.postprocess(samples)
+        if self.dp.postprocessor is not None:
+            return self.dp.postprocess(samples)
         else:
             return samples
     
