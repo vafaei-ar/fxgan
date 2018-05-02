@@ -34,12 +34,11 @@ class Data_Provider(object):
 	def __init__(self,files_list,
 				 dtype = np.float16,
 				 nest = 1,
-				 lp = None,
-				 preprocessor = None,
-				 postprocessor = None):
+				 lp = None):
 
-		self.preprocessor = preprocessor
-		self.postprocessor = postprocessor
+		self.preprocessor = None
+#		self.preprocessor = preprocessor
+#		self.postprocessor = postprocessor
 
 		npatch = 1
 		numpa = 12
@@ -69,8 +68,8 @@ class Data_Provider(object):
 		print("Data Loaded:\n\tpatch number=%d\n\tsize in byte=%d" % (self.n_patch, self.patchs.nbytes))
 		print("\tmin value=%f\n\tmax value=%f\n\tmean value=%f\n\tSTD value=%f" % (self.min, self.max, self.mean, self.std))
 
-		if self.preprocessor is None:
-			self.patchs = self.preprocessor(self.patchs)
+		if self.preprocessor is not None:
+			self.patchs = self.preprocess(self.patchs)
 
 #		if self.preprocess_mode == 0:
 #			pass
@@ -84,12 +83,18 @@ class Data_Provider(object):
 #			self.patchs = np.tanh(self.patchs - self.mean)
 #		else:
 #			raise Exception("invalid normalization mode")
-			
-	def postprocess(self, inp):
-		if self.postprocessor is not None:
-			return self.postprocessor(inp)
-		else:
-			return inp
+
+#	def preprocess(self, inp):
+#		if self.preprocessor is not None:
+#			return self.postprocessor(inp)
+#		else:
+#			return inp
+#			
+#	def postprocess(self, inp):
+#		if self.postprocessor is not None:
+#			return self.postprocessor(inp)
+#		else:
+#			return inp
 #		# must be in TF format
 #		if self.preprocess_mode == 0:
 #			return inp

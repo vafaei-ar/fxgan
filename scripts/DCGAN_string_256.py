@@ -7,7 +7,17 @@ import sys
 import csgan as cs
 
 file_list = ['../../dataset/map1n_allz_rtaapixlw_2048_'+str(i)+'.fits' for i in range(1,4)]
-dp = cs.Data_Provider(file_list,preprocess_mode=2)
+
+class Sample_Data_Provider(cs.Data_Provider):
+	def preprocess(self,inp):
+		scl = float(self.max - self.min)
+		return 2. * ((inp - self.min) / scl) - 1.
+		
+	def postprocess(self,inp):
+		scl = float (self.max - self.min)
+		return (inp + 1.) * .5 * scl + self.min
+
+dp = Sample_Data_Provider(file_list)
 
 batch_size = 64
 image_size = 256

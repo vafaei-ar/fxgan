@@ -84,8 +84,7 @@ class DCGAN(object):
 
         self.d_sum = histogram_summary("d", self.D)
         self.d__sum = histogram_summary("d_", self.D_)
-        
-        if self.dp.postprocessor is not None:
+        if "postprocess" in dir(self.dp):
             self.REAL_sum = image_summary("Real", self.dp.postprocess(inputs[:3, :, :, :1]))
             self.G_sum = image_summary("G", self.dp.postprocess(self.G[:,:,:,:1]))
         else:
@@ -271,7 +270,7 @@ class DCGAN(object):
         output = self.generator(self.z, n_sample, mode='sampler')
         samples = self.sess.run(output,feed_dict={self.z: z})
         
-        if self.dp.postprocessor is not None:
+        if "postprocess" in dir(self.dp):
             return self.dp.postprocess(samples)
         else:
             return samples
