@@ -17,21 +17,19 @@ class Sample_Data_Provider(cs.Data_Provider):
 		scl = float (self.max - self.min)
 		return (inp + 1.) * .5 * scl + self.min
 
+batch_size = 64
 image_size = 256
 dp = Sample_Data_Provider(file_list,image_size)
 
-batch_size = 64
-image_size = 256
 checkpoint_dir = './'+sys.argv[0][:-3]+'/checkpoint'
 sample_dir = './'+sys.argv[0][:-3]+'/samples'
 log_dir = './'+sys.argv[0][:-3]+'/logs'
 
 dcgan = cs.DCGAN(
     data_provider = dp,
-    batch_size=64, gf_dim=64, df_dim=64,
+    batch_size=batch_size, gf_dim=64, df_dim=64,
     label_real_lower=.9, label_fake_upper=.1,
-    z_dim=2048,checkpoint_dir=checkpoint_dir,
-    save_per = 100)
+    z_dim=2048,save_per = 100)
 
 dcgan.train(num_epoch=100000,batch_per_epoch=50,verbose=10,\
 learning_rate=1e-4,D_update_per_batch=1,G_update_per_batch=1,\
