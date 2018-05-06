@@ -1,4 +1,4 @@
-modules = ['Data_Provider','model']
+modules = ['Data_Provider','model','sgan']
 
 for module in modules:
 	exec('from '+module+' import *')

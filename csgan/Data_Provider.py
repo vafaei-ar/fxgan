@@ -132,3 +132,91 @@ class Data_Provider(object):
 			x[i,:,:,0] = xx
 
 		return x
+		
+		
+class Supervised_Data_Provider(object):
+	
+	"""
+	CLASS GeneralDataProvider: This class will provide data to feed network.
+	--------
+	METHODS:
+	__init__:
+	| arguments:
+	|		files_list: list of paths to the maps. 
+	|		dtype (default=np.float16): 
+	|		nest (default=1): 
+	|		lp (default=4096):  
+	
+	__call__:
+	This method provides 
+	| Arguments:
+	|		num: number of returned patches.
+	|		l: number of returned patches.
+	| Returns:
+	|		Image, Demand map, coordinates (if coord is true)
+	"""
+
+	def __init__(self,files_list,w_size,func,
+				 dtype = np.float16,
+				 nest = 1,
+				 lp = None):
+				 
+		self.w_size = w_size
+		self.preprocessor = None
+
+		npatch = 1
+		numpa = 12
+
+		if type(files_list) is not list:
+			files_list = [files_list]
+
+		if lp is None:
+			fits_hdu = hp.fitsfunc._get_hdu(files_list[0], hdu=1, memmap=False)
+			lp = fits_hdu.header.get('NSIDE')
+
+		self.files_list = files_list
+		n_files = len(files_list)
+		self.patchs = np.zeros((12*n_files,lp,lp))
+		for i in range(n_files):
+			file_ = files_list[i]
+			m = hp.read_map(file_,dtype=dtype,verbose=0,nest=nest)
+			self.patchs[i*12:(i+1)*12,:,:] = sky_to_patch(m,npatch,numpa,lp)
+
+		self.n_patch = self.patchs.shape[0]
+
+		self.l_max = self.patchs.shape[1]
+		assert self.w_size<self.l_max,'ERROR!'
+
+		self.mean = self.patchs.mean()
+		self.std = self.patchs.std()
+		self.min = self.patchs.min()
+		self.max = self.patchs.max()
+
+		print("Data Loaded:\n\tpatch number=%d\n\tsize in byte=%d" % (self.n_patch, self.patchs.nbytes))
+		print("\tmin value=%f\n\tmax value=%f\n\tmean value=%f\n\tSTD value=%f" % (self.min, self.max, self.mean, self.std))
+
+		if self.preprocessor is not None:
+			self.patchs = self.preprocess(self.patchs)
+
+	def __call__(self,num):
+					 
+		l = self.w_size
+		l_max = self.l_max
+		
+		x = np.zeros((num,l,l,1))
+		y = np.zeros((num,l,l,1))
+
+		for i in range(num):
+			face = np.random.randint(self.n_patch)
+			i0 = np.random.randint(l_max-l)
+			j0 = np.random.randint(l_max-l)
+			xx = self.patchs[face,i0:i0+l,j0:j0+l]
+
+			xx = np.rot90(xx,np.random.randint(4))
+			if 0 == np.random.randint(2):
+				xx = np.flip(xx,0)
+
+			x[i,:,:,0] = xx
+			y[i,:,:,0] = func(xx)
+
+		return x,y

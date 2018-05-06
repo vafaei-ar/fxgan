@@ -12,7 +12,7 @@ from time import gmtime, strftime
 import numpy as np
 import scipy.misc
 import tensorflow as tf
-#import tensorflow.contrib.slim as slim
+import tensorflow.contrib.slim as slim
 from six.moves import xrange
 
 pp = pprint.PrettyPrinter()
@@ -36,9 +36,9 @@ def ch_mkdir(directory):
     if not os.path.exists(directory):
           os.makedirs(directory)
 
-#def show_all_variables():
-#  model_vars = tf.trainable_variables()
-#  slim.model_analyzer.analyze_vars(model_vars, print_info=True)
+def show_all_variables():
+  model_vars = tf.trainable_variables()
+  slim.model_analyzer.analyze_vars(model_vars, print_info=True)
 
 def get_image(image_path, input_height, input_width,
               resize_height=64, resize_width=64,
