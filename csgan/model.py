@@ -310,7 +310,8 @@ class DCGAN(object):
 
     @property
     def model_dir(self):
-        return "{}_{}".format(self.output_height, self.output_width)
+#        return "{}_{}".format(self.output_height, self.output_width)
+        return 'model'
 
     def save(self, checkpoint_dir, step):
         model_name = "DCGAN.model"
