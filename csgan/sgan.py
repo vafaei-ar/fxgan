@@ -147,7 +147,8 @@ class SGAN(object):
 
     def train(self,learning_rate=0.0002,beta1=0.5,num_epoch=25,
               batch_per_epoch = 1000,sample_per=None,
-              sample_dir='samples',checkpoint_dir='checkpoint',verbose=10,
+              sample_dir='samples',checkpoint_dir='checkpoint',
+              log_dir='log',verbose=10,
               D_update_per_batch=1, E_update_per_batch=1, G_update_per_batch=2, time_limit=None):
         
         if time_limit is not None:
@@ -169,7 +170,7 @@ class SGAN(object):
 
         self.g_sum = merge_summary([self.z_sum, self.d__sum, self.G_sum, self.d_loss_fake_sum, self.g_loss_sum])
         self.d_sum = merge_summary([self.z_sum, self.d_sum, self.REAL_sum, self.d_loss_real_sum, self.d_loss_sum])
-        self.writer = SummaryWriter("./logs", self.sess.graph)
+        self.writer = SummaryWriter('./'+log_dir, self.sess.graph)
 
         # sample_z = np.random.uniform(-1, 1, size=(self.sample_num, self.z_dim))
         sample_z = np.random.normal(size=(self.n_sample, self.z_dim))
