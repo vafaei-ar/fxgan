@@ -15,7 +15,7 @@ class SGAN(object):
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
-                 checkpoint_dir=None,save_per = 500, noise_fucntion=None):
+                 save_per = 500, noise_fucntion=None):
 
         self.dp = data_provider  
         
@@ -62,9 +62,6 @@ class SGAN(object):
 
         self.gf_dim = gf_dim
         self.df_dim = df_dim
-
-        self.checkpoint_dir = checkpoint_dir
-
 
         # batch normalization : deals with poor initialization helps gradient flow
         self.d_bn1 = batch_norm(name='d_bn1')
@@ -150,6 +147,8 @@ class SGAN(object):
               sample_dir='samples',checkpoint_dir='checkpoint',
               log_dir='log',verbose=10,
               D_update_per_batch=1, E_update_per_batch=1, G_update_per_batch=2, time_limit=None):
+        
+        self.checkpoint_dir = checkpoint_dir
         
         if time_limit is not None:
             # import time

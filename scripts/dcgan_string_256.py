@@ -22,8 +22,9 @@ dp = Sample_Data_Provider(file_list,image_size)
 
 batch_size = 64
 image_size = 256
-checkpoint_dir = './checkpoint/'+sys.argv[0][:-3]
-sample_dir = './samples/'+sys.argv[0][:-3]
+checkpoint_dir = './'+sys.argv[0][:-3]+'/checkpoint'
+sample_dir = './'+sys.argv[0][:-3]+'/samples'
+log_dir = './'+sys.argv[0][:-3]+'/logs'
 
 dcgan = cs.DCGAN(
     data_provider = dp,
@@ -34,5 +35,5 @@ dcgan = cs.DCGAN(
 
 dcgan.train(num_epoch=100000,batch_per_epoch=50,verbose=10,\
 learning_rate=1e-4,D_update_per_batch=1,G_update_per_batch=1,\
-sample_dir=sample_dir,checkpoint_dir=checkpoint_dir,time_limit=10)
+sample_dir=sample_dir,checkpoint_dir=checkpoint_dir,log_dir=log_dir,time_limit=10)
 
