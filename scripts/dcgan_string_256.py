@@ -33,5 +33,5 @@ dcgan = cs.DCGAN(
 
 dcgan.train(num_epoch=100000,batch_per_epoch=50,verbose=10,\
 learning_rate=1e-4,D_update_per_batch=1,G_update_per_batch=1,\
-sample_dir=sample_dir,checkpoint_dir=checkpoint_dir,log_dir=log_dir,time_limit=10)
+sample_dir=sample_dir,checkpoint_dir=checkpoint_dir,log_dir=log_dir,time_limit=5)
 

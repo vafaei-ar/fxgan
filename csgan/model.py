@@ -205,13 +205,13 @@ class DCGAN(object):
                         print("one pic error!...")
 
                 if np.mod(counter, self.save_per) == 2:
-                    self.save(checkpoint_dir, counter)
+                    self.save(self.checkpoint_dir, counter)
                     
                 if time_limit is not None:
                     t1 = time.time()
                     if (t1-t0)/60>time_limit:
                         print "Time's up, goodbye!"
-                        self.save(checkpoint_dir, counter)
+                        self.save(self.checkpoint_dir, counter)
                         return 0
 
     def discriminator(self, image, reuse=False):
