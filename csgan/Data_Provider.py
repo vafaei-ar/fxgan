@@ -37,7 +37,6 @@ class Data_Provider(object):
 				 lp = None):
 				 
 		self.w_size = w_size
-		self.preprocess = None
 #		self.preprocessor = preprocessor
 #		self.postprocessor = postprocessor
 
@@ -72,8 +71,7 @@ class Data_Provider(object):
 		print("Data Loaded:\n\tpatch number=%d\n\tsize in byte=%d" % (self.n_patch, self.patchs.nbytes))
 		print("\tmin value=%f\n\tmax value=%f\n\tmean value=%f\n\tSTD value=%f" % (self.min, self.max, self.mean, self.std))
 
-		if self.preprocess is not None:
-			self.patchs = self.preprocess(self.patchs)
+		self.patchs = self.preprocess(self.patchs)
 
 #		if self.preprocess_mode == 0:
 #			pass
@@ -133,6 +131,8 @@ class Data_Provider(object):
 
 		return x
 		
+    def preprocess(x):
+        return x		
 		
 class Supervised_Data_Provider(object):
 	
@@ -162,7 +162,6 @@ class Supervised_Data_Provider(object):
 				 lp = None):
 				 
 		self.w_size = w_size
-		self.preprocess = None
 
 		npatch = 1
 		numpa = 12
@@ -195,8 +194,7 @@ class Supervised_Data_Provider(object):
 		print("Data Loaded:\n\tpatch number=%d\n\tsize in byte=%d" % (self.n_patch, self.patchs.nbytes))
 		print("\tmin value=%f\n\tmax value=%f\n\tmean value=%f\n\tSTD value=%f" % (self.min, self.max, self.mean, self.std))
 
-		if self.preprocess is not None:
-			self.patchs = self.preprocess(self.patchs)
+		self.patchs = self.preprocess(self.patchs)
 
 	def __call__(self,num):
 					 
@@ -220,3 +218,6 @@ class Supervised_Data_Provider(object):
 			y[i,:,:,0] = func(xx)
 
 		return x,y
+		
+    def preprocess(x):
+        return x
