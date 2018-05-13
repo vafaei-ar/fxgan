@@ -42,7 +42,6 @@ log_dir = './'+sys.argv[0][:-3]+'/logs'
 dcgan = cs.DCGAN(
     data_provider = dp,
     batch_size=64, gf_dim=64, df_dim=64,
-    sample_dir=sample_dir, checkpoint_dir=checkpoint_dir, log_dir=log_dir,
     z_dim=100, save_per = 100)
 
 dcgan.train(num_epoch=100000, batch_per_epoch = 10, verbose=10, learning_rate=1e-4, sample_per=5, sample_dir=sample_dir, checkpoint_dir=checkpoint_dir, log_dir=log_dir, time_limit=60)
