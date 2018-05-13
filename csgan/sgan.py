@@ -253,6 +253,18 @@ class SGAN(object):
 
             return tf.nn.sigmoid(h4), h4
 
+    def extractor(self, image, reuse=False):
+        with tf.variable_scope("extractor") as scope:
+            if reuse:
+                scope.reuse_variables()
+
+            h0 = lrelu(conv2d(image, self.ef_dim, k_h=5, k_w=5, d_h=1, d_w=1, name='e_h0_conv'))
+            h1 = lrelu(self.d_bn1(conv2d(h0, self.ef_dim, k_h=5, k_w=5, d_h=1, d_w=1, name='e_h1_conv')))
+            h2 = lrelu(self.d_bn2(conv2d(h1, self.ef_dim, k_h=5, k_w=5, d_h=1, d_w=1, name='e_h2_conv')))
+            h3 = lrelu(self.d_bn3(conv2d(h2, self.ef_dim, k_h=5, k_w=5, d_h=1, d_w=1, name='e_h3_conv')))
+
+            return h3
+            
     def generator(self, z, batch_size, mode='train'):
         with tf.variable_scope("generator") as scope:
             if mode=='train':
