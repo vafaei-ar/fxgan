@@ -12,8 +12,8 @@ x_train = mnist.train.images[:55000,:]
 x_train.shape
 
 class data_provider(object):
+
     def __init__(self,x_train):
-        
         x_train = x_train/np.max(x_train,axis=1)[:,None]
         self.x_train = x_train
         self.num = x_train.shape[0]
@@ -22,18 +22,11 @@ class data_provider(object):
         n_list = np.arange(self.num)
         random.shuffle(n_list)
         return self.x_train[n_list[:n]].reshape(n,28,28,1)
-        
-
 
 batch_size = 64
 image_size = 256
 
-
 dp = data_provider(x_train)
-    
-#image = dp(10)[0].reshape([28,28])
-#plt.imshow(image, cmap=plt.get_cmap('gray_r'))
-#plt.show()
 
 checkpoint_dir = './'+sys.argv[0][:-3]+'/checkpoint'
 sample_dir = './'+sys.argv[0][:-3]+'/samples'
