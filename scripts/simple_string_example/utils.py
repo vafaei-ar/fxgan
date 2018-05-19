@@ -97,6 +97,7 @@ class Simple_String(object):
         
             rec = rotate(rec, angle, axes=(1, 0), reshape=0) 
             
+        rec = rec/rec.max()   
         if self.mode is None:
             return rec[50:-50,50:-50]
         else:

@@ -47,7 +47,7 @@ class SGAN(object):
         self.label_fake_upper = label_fake_upper
         self.save_per = save_per
         
-        x = self.dp(1)
+        x,y = self.dp(1)
         self.input_height,self.input_width, self.c_dim = x.shape[1:4]
         if output_height is None or output_width is None:
             print("Output size is same as input's!")
@@ -83,15 +83,17 @@ class SGAN(object):
 
         self.inputs = tf.placeholder(tf.float32, [self.batch_size] + image_dims, name='real_images')
         inputs = self.inputs
-        self.ext = tf.placeholder(tf.float32, [self.batch_size] + image_dims, name='real_images')
+        self.ext = tf.placeholder(tf.float32, [self.batch_size] + image_dims, name='featured_images')
+        
+        self.alpha = tf.placeholder(1., name='alpha', trainable=False)
 
         self.z = tf.placeholder(tf.float32, [None, self.z_dim], name='z')
         self.z_sum = histogram_summary("z", self.z)
 
         self.G = self.generator(self.z,self.batch_size)
-        self.E = self.extractor(self.G)
+        self.E = self.extractor(self.G) + self.alpha*self.G
         self.E_in = self.extractor(self.noise(inputs))
-        self.D, self.D_logits = self.discriminator(self.E_in, reuse=False)
+        self.D, self.D_logits = self.discriminator(inputs, reuse=False)
         self.sampler_out = self.sampler(self.z,self.n_sample)
         self.D_, self.D_logits_ = self.discriminator(self.E, reuse=True)
 
@@ -103,6 +105,7 @@ class SGAN(object):
         else:
             self.REAL_sum = image_summary("Real", inputs[:3, :, :, :1])
             self.G_sum = image_summary("G", self.G[:,:,:,:1])
+        self.E_in_sum = image_summary("E_in", self.E_in[:,:,:,:1])
         self.E_sum = image_summary("E", self.E[:,:,:,:1])
             
         def sigmoid_cross_entropy_with_logits(x, y):
@@ -168,6 +171,7 @@ class SGAN(object):
             tf.initialize_all_variables().run(session=self.sess)
 
         self.g_sum = merge_summary([self.z_sum, self.d__sum, self.G_sum, self.d_loss_fake_sum, self.g_loss_sum])
+        self.e_sum = merge_summary([self.e_loss_sum])
         self.d_sum = merge_summary([self.z_sum, self.d_sum, self.REAL_sum, self.d_loss_real_sum, self.d_loss_sum])
         self.writer = SummaryWriter('./'+log_dir, self.sess.graph)
 
@@ -176,7 +180,7 @@ class SGAN(object):
         
         # sample = self.dp(self.n_sample)
 
-        counter = 1
+        counter = -1
         start_time = time.time()
         could_load, checkpoint_counter = self.load(self.checkpoint_dir)
         if could_load:
@@ -188,7 +192,7 @@ class SGAN(object):
         for epoch in xrange(num_epoch):
 
             for idx in xrange(batch_per_epoch):
-                batch,ext = self.dp(self.batch_size)
+                batch,y = self.dp(self.batch_size)
                 batch_images = np.array(batch).astype(np.float32)
 
                 batch_z = np.random.normal(size=(self.batch_size, self.z_dim)).astype(np.float32)
@@ -198,7 +202,7 @@ class SGAN(object):
 
                 # Update E network
                 for __ in range (E_update_per_batch):
-                    self.sess.run(e_optim, feed_dict={self.inputs: batch_images, self.ext: ext})
+                    self.sess.run(e_optim, feed_dict={self.inputs: batch_images, self.ext: y})
 
                 # Update G network
                 for __ in range(G_update_per_batch):
@@ -225,8 +229,8 @@ class SGAN(object):
                         ch_mkdir(sample_dir)
                         
                         save_images(samples[:,:,:,:1], image_manifold_size(samples.shape[0]),
-                                     './{}/train_{:02d}_{:04d}.png'.format(sample_dir, epoch, idx))
-                        print('./{}/train_{:02d}_{:04d}.png'.format(sample_dir, epoch, idx))
+                                     './{}/sample_{:06d}.png'.format(sample_dir, counter//sample_per))
+                        print('{}/sample: epoch {:03d}- batch {:04d}- number {:06d}'.format(sample_dir, epoch, idx, counter//sample_per))
                     except:
                         print("one pic error!...")
 
@@ -269,7 +273,6 @@ class SGAN(object):
         with tf.variable_scope("generator") as scope:
             if mode=='train':
                 trainable = True
-                pass
             elif mode=='sampler':
                 trainable = False
                 scope.reuse_variables()
