@@ -11,13 +11,14 @@ from ops import *
 from utils import *
 
 class DCGAN(object):
-    def __init__(self, data_provider, batch_size=64, n_side=4,
+    def __init__(self, data_provider, batch_size=64, 
+                 n_side=4, sample_z = None,
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
                  save_per = 500):
 
-        self.dp = data_provider        
+        self.dp = data_provider       
 
         """
         Args:
@@ -37,6 +38,18 @@ class DCGAN(object):
         self.label_real_lower = label_real_lower
         self.label_fake_upper = label_fake_upper
         self.save_per = save_per
+        # self.y_dim = y_dim
+        self.z_dim = z_dim
+
+        self.gf_dim = gf_dim
+        self.df_dim = df_dim
+        
+        # sample_z = np.random.uniform(-1, 1, size=(self.sample_num, self.z_dim))
+        if sample_z is None:
+            self.sample_z = np.random.normal(size=(self.n_sample, self.z_dim)) 
+        else:
+            assert sample_z.shape == (self.n_sample, self.z_dim),'Sample shape should be: (n_side**2 x z_dim) = '+str(self.n_sample)+'x'+str(self.z_dim)
+            self.sample_z = sample_z
         
         x = self.dp(1)
         self.input_height,self.input_width, self.c_dim = x.shape[1:4]
@@ -47,12 +60,6 @@ class DCGAN(object):
         else:
             self.output_height = output_height
             self.output_width = output_width
-
-        # self.y_dim = y_dim
-        self.z_dim = z_dim
-
-        self.gf_dim = gf_dim
-        self.df_dim = df_dim
 
         # batch normalization : deals with poor initialization helps gradient flow
         self.d_bn1 = batch_norm(name='d_bn1')
@@ -148,13 +155,10 @@ class DCGAN(object):
         self.g_sum = merge_summary([self.z_sum, self.d__sum, self.G_sum, self.d_loss_fake_sum, self.g_loss_sum])
         self.d_sum = merge_summary([self.z_sum, self.d_sum, self.REAL_sum, self.d_loss_real_sum, self.d_loss_sum])
         self.writer = SummaryWriter('./'+log_dir, self.sess.graph)
-
-        # sample_z = np.random.uniform(-1, 1, size=(self.sample_num, self.z_dim))
-        sample_z = np.random.normal(size=(self.n_sample, self.z_dim))
         
         # sample = self.dp(self.n_sample)
 
-        counter = 1
+        counter = -1
         start_time = time.time()
         could_load, checkpoint_counter = self.load(self.checkpoint_dir)
         if could_load:
@@ -194,15 +198,15 @@ class DCGAN(object):
                 if np.mod(counter, sample_per) == 1 or sample_per==1:
                     try:
                         samples = self.sess.run(self.sampler_out,
-                            feed_dict={self.z: sample_z})
+                            feed_dict={self.z: self.sample_z})
 
                         ch_mkdir(sample_dir)
                         
                         save_images(samples[:,:,:,:1], image_manifold_size(samples.shape[0]),
-                                     './{}/train_{:02d}_{:04d}.png'.format(sample_dir, epoch, idx))
-                        print('./{}/train_{:02d}_{:04d}.png'.format(sample_dir, epoch, idx))
+                                     './{}/sample_{:06d}.png'.format(sample_dir, counter//sample_per))
+                        print('{}/sample: epoch {:03d}- batch {:04d}- number {:06d}'.format(sample_dir, epoch, idx, counter//sample_per))
                     except:
-                        print("one pic error!...")
+                        print("Sample production error!...")
 
                 if np.mod(counter, self.save_per) == 2:
                     self.save(self.checkpoint_dir, counter)
