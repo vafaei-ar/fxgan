@@ -11,7 +11,8 @@ from ops import *
 from utils import *
 
 class SGAN(object):
-    def __init__(self, data_provider, batch_size=64, n_side=4,
+    def __init__(self, data_provider, batch_size=64, 
+                 n_side=4, sample_z=None,
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
@@ -46,7 +47,19 @@ class SGAN(object):
         self.label_real_lower = label_real_lower
         self.label_fake_upper = label_fake_upper
         self.save_per = save_per
+        # self.y_dim = y_dim
+        self.z_dim = z_dim
+
+        self.gf_dim = gf_dim
+        self.df_dim = df_dim
         
+        # sample_z = np.random.uniform(-1, 1, size=(self.sample_num, self.z_dim))
+        if sample_z is None:
+            self.sample_z = np.random.normal(size=(self.n_sample, self.z_dim)) 
+        else:
+            assert sample_z.shape == (self.n_sample, self.z_dim),'Sample shape should be: (n_side**2 x z_dim) = '+str(self.n_sample)+'x'+str(self.z_dim)
+            self.sample_z = sample_z
+
         x,y = self.dp(1)
         self.input_height,self.input_width, self.c_dim = x.shape[1:4]
         if output_height is None or output_width is None:
@@ -56,12 +69,6 @@ class SGAN(object):
         else:
             self.output_height = output_height
             self.output_width = output_width
-
-        # self.y_dim = y_dim
-        self.z_dim = z_dim
-
-        self.gf_dim = gf_dim
-        self.df_dim = df_dim
 
         # batch normalization : deals with poor initialization helps gradient flow
         self.d_bn1 = batch_norm(name='d_bn1')
@@ -174,9 +181,6 @@ class SGAN(object):
         self.e_sum = merge_summary([self.e_loss_sum])
         self.d_sum = merge_summary([self.z_sum, self.d_sum, self.REAL_sum, self.d_loss_real_sum, self.d_loss_sum])
         self.writer = SummaryWriter('./'+log_dir, self.sess.graph)
-
-        # sample_z = np.random.uniform(-1, 1, size=(self.sample_num, self.z_dim))
-        sample_z = np.random.normal(size=(self.n_sample, self.z_dim))
         
         # sample = self.dp(self.n_sample)
 
@@ -224,7 +228,7 @@ class SGAN(object):
                 if np.mod(counter, sample_per) == 1 or sample_per==1:
                     try:
                         samples = self.sess.run(self.sampler_out,
-                            feed_dict={self.z: sample_z})
+                            feed_dict={self.z: self.sample_z})
 
                         ch_mkdir(sample_dir)
                         

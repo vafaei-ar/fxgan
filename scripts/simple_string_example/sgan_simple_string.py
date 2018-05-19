@@ -51,15 +51,15 @@ checkpoint_dir = './'+save_dir+'/checkpoint'
 sample_dir = './'+save_dir+'/samples'
 log_dir = './'+save_dir+'/logs'
 
-dcgan = cs.DCGAN(
+sgan = cs.SGAN(
     data_provider = dp,
     batch_size=batch_size, 
     n_side=n_side,sample_z = sample_z,
     gf_dim=32, df_dim=32,
     label_real_lower=.9, label_fake_upper=.1,
     z_dim=512,save_per = 100)
-
-dcgan.train(num_epoch=100000,batch_per_epoch=10,sample_per=1,verbose=1,\
+    
+sgan.train(num_epoch=100000,batch_per_epoch=10,sample_per=1,verbose=1,\
 learning_rate=learning_rate,D_update_per_batch=2,G_update_per_batch=1,\
 sample_dir=sample_dir,checkpoint_dir=checkpoint_dir,\
 log_dir=log_dir,time_limit=time_limit)

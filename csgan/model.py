@@ -12,7 +12,7 @@ from utils import *
 
 class DCGAN(object):
     def __init__(self, data_provider, batch_size=64, 
-                 n_side=4, sample_z = None,
+                 n_side=4, sample_z=None,
                  output_height=None, output_width=None,
                  z_dim=100, gf_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
