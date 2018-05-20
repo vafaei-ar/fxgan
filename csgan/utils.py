@@ -22,6 +22,7 @@ get_stddev = lambda x, k_h, k_w: 1/math.sqrt(k_w*k_h*x.get_shape()[-1])
 def movie(address,output='movie',fps=10):
     if address[-1]!='/':
         address += '/'
+    print 'Making movie from:'+address
     os.system('ffmpeg -r '+str(fps)+' -i '+address+'sample_%06d.png -vcodec mpeg4 -y '+output+'.mp4')
 
 def conv_out_size_same(size, stride):
