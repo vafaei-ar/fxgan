@@ -14,7 +14,7 @@ class SGAN(object):
     def __init__(self, data_provider, batch_size=64, 
                  n_side=4, sample_z=None,
                  output_height=None, output_width=None,
-                 z_dim=100, gf_dim=64, df_dim=64,
+                 z_dim=100, gf_dim=64, ef_dim=64, df_dim=64,
                  label_real_lower=0.99,label_fake_upper=0.01,
                  save_per = 500, noise_fucntion=None):
 
@@ -22,9 +22,7 @@ class SGAN(object):
         
         if noise_fucntion is None:
         	def noise_fucntion(inp):
-        		m = inp.mean()
-        		s = inp.std()
-        		noise = np.random.normal(m,0.3*s,inp.shape)
+        		noise = np.random.normal(0,0.3,inp.shape)
         		return inp+noise
         		
         self.noise = noise_fucntion
@@ -51,6 +49,7 @@ class SGAN(object):
         self.z_dim = z_dim
 
         self.gf_dim = gf_dim
+        self.ef_dim = ef_dim
         self.df_dim = df_dim
         
         # sample_z = np.random.uniform(-1, 1, size=(self.sample_num, self.z_dim))
@@ -92,14 +91,15 @@ class SGAN(object):
         inputs = self.inputs
         self.ext = tf.placeholder(tf.float32, [self.batch_size] + image_dims, name='featured_images')
         
-        self.alpha = tf.placeholder(1., name='alpha', trainable=False)
+        self.alpha = tf.Variable(1., name='alpha', trainable=True)
 
         self.z = tf.placeholder(tf.float32, [None, self.z_dim], name='z')
         self.z_sum = histogram_summary("z", self.z)
 
         self.G = self.generator(self.z,self.batch_size)
-        self.E = self.extractor(self.G) + self.alpha*self.G
-        self.E_in = self.extractor(self.noise(inputs))
+        
+        self.E = self.extractor(self.G, reuse=False) + self.alpha*self.G
+        self.E_in = self.extractor(self.noise(inputs), reuse=True)
         self.D, self.D_logits = self.discriminator(inputs, reuse=False)
         self.sampler_out = self.sampler(self.z,self.n_sample)
         self.D_, self.D_logits_ = self.discriminator(self.E, reuse=True)

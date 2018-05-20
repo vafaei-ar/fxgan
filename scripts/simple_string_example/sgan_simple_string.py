@@ -37,7 +37,8 @@ else:
     sample_z = np.random.normal(size=(n_side**2, 512))
     np.savetxt('./'+save_dir+'/sample_z',sample_z)
 
-dp = Simple_String(nx=nside,ny=nside,num=100,augment=True,reinit=100,mode=mode)
+dp = Simple_String(nx=nside,ny=nside,num=100,augment=True
+                   ,reinit=100,mode=mode, supervised=True)
 
 if show:
     sims = dp(10)
@@ -55,7 +56,7 @@ sgan = cs.SGAN(
     data_provider = dp,
     batch_size=batch_size, 
     n_side=n_side,sample_z = sample_z,
-    gf_dim=32, df_dim=32,
+    gf_dim=32, ef_dim=32 , df_dim=32,
     label_real_lower=.9, label_fake_upper=.1,
     z_dim=512,save_per = 100)
     

@@ -4,6 +4,12 @@ import numpy as np
 from skimage.draw import polygon
 from scipy.ndimage.interpolation import rotate
 
+def normal(x):
+    xmax = x.max()
+    if xmax!=0:
+        x = x/xmax
+    return x
+
 def canny(d,edege):
 
     if edege=='lap':
@@ -27,7 +33,10 @@ def canny(d,edege):
 class Simple_String(object):
 
     def __init__(self,nx=200,ny=200,num=100,augment=True,
-                reinit=0,ns=20,l_min=None,l_max=None,mode=None):
+                reinit=0,ns=20,l_min=None,l_max=None,mode=None,supervised=False):
+                
+        if supervised:
+            assert mode is not None,'Supervised GAN have to use a filter, please choose a filter mode!'
         self.nx = nx
         self.ny = ny
         if augment:
@@ -48,6 +57,9 @@ class Simple_String(object):
             self.season = 0
         self.mode = mode
         self.strings = np.zeros((num,nx,ny,1))
+        if supervised:
+            self.featured = np.zeros((num,nx,ny,1))
+        self.supervised = supervised
         self.reinitiate()
         
     def augmentation(self,m,i):
@@ -64,10 +76,18 @@ class Simple_String(object):
             for i in range(0,self.num,8):
                 m = self.string()
                 for j in range(8):
-                    self.strings[i+j,:,:,0] = self.augmentation(m,j)    
+                    self.strings[i+j,:,:,0] = self.augmentation(m,j)   
+                    self.strings[i+j,:,:,0] = normal(self.strings[i+j,:,:,0])
+                    if self.supervised:
+                        self.featured[i+j,:,:,0] = canny(self.strings[i+j,:,:,0],self.mode)
         else:
             for i in range(self.num):
                 self.strings[i,:,:,0] = self.string()
+                self.strings[i,:,:,0] = normal(self.strings[i,:,:,0])
+                if self.supervised:
+                    self.featured[i,:,:,0] = canny(self.strings[i,:,:,0],self.mode)
+        
+
         
     def string(self,ns=None):
         
@@ -97,8 +117,7 @@ class Simple_String(object):
         
             rec = rotate(rec, angle, axes=(1, 0), reshape=0) 
             
-        rec = rec/rec.max()   
-        if self.mode is None:
+        if self.mode is None or self.supervised:
             return rec[50:-50,50:-50]
         else:
             return canny(rec[50:-50,50:-50],self.mode)
@@ -114,7 +133,10 @@ class Simple_String(object):
         idx = np.arange(self.num)
         random.shuffle(idx)
         idx = idx[:n]
-        return self.strings[idx]
+        if self.supervised:
+            return self.strings[idx],self.featured[idx]
+        else:
+            return self.strings[idx]
     
 
 
