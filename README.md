@@ -1,4 +1,4 @@
-CSGAN
+FXGAN
 =======
 
 _Python library for _
